@@ -2,9 +2,9 @@
 User can login to the application host server and can upload the photos to cloud server and download the photos that are already uploaded. Photos are stored at the cloud server and account information is also stored in a database. User can provide access to other users to share the photos that are stored in the cloud.
 
 ## Napkin Diagram
-(docs/Napkin_Diagram.png)
+![Architecture](docs/Napkin_Diagram.PNG)
 
-## Architecture diagram
+### Architecture diagram
 ![Architecture](docs/architecture_diagram.jpg)
 
 Team members:
