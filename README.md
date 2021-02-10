@@ -10,7 +10,7 @@ User can login to the application host server and can upload the photos to cloud
 Team members:
 
 1. [Deepika Awasthi](https://github.com/danagar0312)
-Currently pursuing Master’s in Computer Science at Indiana University. Have 8 years of work experience in major frameworks and programming practices such as Java, Enterprise Development,Django, Spark, Flink, Mongo DB and AWS.
+Currently pursuing Master’s in Computer Science at Indiana University.Working experience in frameworks and programming languages such as Java Enterprise Development,Django, Spark, Flink, Mongo DB and AWS.
 
 2. [Sahiba Mittal](https://github.com/SahibaM)
 Currently pursuing Master’s in Computer Science at Indiana University. Have 5.9 years of professional work experience as data analyst at Accenture and Fidelity. Have hands on experience in Informatica powercenter, SQL, UNIX,JAVA,Control-M,React and Node.
