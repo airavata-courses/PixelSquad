@@ -1,5 +1,8 @@
 # PixelSquad: Project Overview
-User can login to the application host server and can upload the photos to cloud server and download the photos that are already uploaded. Photos are stored at the cloud server and account information is also stored in a database. User can provide access to other users to share the photos that are stored in the cloud.
+PixelSquad aims to provide users the ability to store their images in a cloud environment 
+and be able to share their images with their friends and peers. With the use of several
+advanced technologies, metadata and the information present in the images are extracted and
+are then leveraged to enable searching based on this information.
 
 ## Napkin Diagram
 ![Napkin](docs/Napkin_Diagram.PNG)
