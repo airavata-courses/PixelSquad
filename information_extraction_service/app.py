@@ -14,7 +14,7 @@ app.config.from_object(__name__)
 
 yolomodel = make_yolov3_model()
 # load the weights trained on COCO into the model
-weights_path = 'D:/IU/Applied Distributed Systems/yolov3.weights'
+weights_path = '/Users/vivekkarna/Documents/yolov3.weights'
 weight_reader = WeightReader(weights_path)
 weight_reader.load_weights(yolomodel)
 
