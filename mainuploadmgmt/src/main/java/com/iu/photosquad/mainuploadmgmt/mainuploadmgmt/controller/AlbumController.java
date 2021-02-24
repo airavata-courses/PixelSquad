@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,6 +51,9 @@ public class AlbumController {
 	
 	@Autowired
 	private UserRepo userrepo;
+	
+	@Autowired
+	private KafkaTemplate<String,Object> template;
 	
 	@PostMapping(path="/create")
 	public ResponseEntity<?> create(@RequestBody AlbumModel album) {
@@ -97,18 +101,16 @@ public class AlbumController {
 		for(MultipartFile mf : files) {
 			Photo pic = new Photo();
 			pic.setPhotoname(photoname + String.valueOf((int) Math.random()));
-			pic.setId((int) Math.random());
-//			pic.setAlbum(albumrepo.findByAlbumname(albumname));
-			pic.setAnnotationtags(String.valueOf((int) Math.random()));
+			pic.setAlbum_id(albumrepo.findByAlbumname(albumname).getId());
+			pic.setAnnotationtags("hello1");
 			pic.setCreatedAt(LocalDate.now());
-			pic.setDescription(String.valueOf((int) Math.random()));
+			pic.setDescription("hello2");
 			pic.setSize(0);
 			pic.setUpdatedAt(LocalDate.now());
 			pic.setData(mf.getBytes());
 			photoset.add(pic);
 		}
 
-//		photorepo.save(pic);
 		List<String> usernames = new ArrayList<>();
 		
 		Set<User> albumusers = new HashSet<User>();
@@ -155,18 +157,14 @@ public class AlbumController {
 		    parentalbum.setUsers(st);
 		}
 		
-		
 		parentalbum.getUsers().addAll(albumusers);
 		parentalbum.getPhotos().addAll(photoset);
-//		if(parentalbum.getPhotos().isEmpty()) {
-//			System.out.println("hello");
-////			System.out.println(photorepo.findByPhotoname(photoname));
-////			parentalbum.getPhotos().add(pic);
-//		}
-//		System.out.println(parentalbum);
-////		albumrepo.save(parentalbum);
+
 		
 		albumrepo.save(parentalbum);
+		Album albs = albumrepo.findByAlbumname(parentalbum.getAlbumname());
+		template.send("album", albs.toString());
+		System.out.println("album sent to google");
 		return ResponseEntity.ok("200");
 	}
 	
