@@ -1,4 +1,5 @@
-# PixelSquad: Project Overview
+**#Develop branch contains all the code 
+**# PixelSquad: Project Overview
 PixelSquad aims to provide users the ability to store their images in a cloud environment 
 and be able to share their images with their friends and peers. With the use of several
 advanced technologies, metadata and the information present in the images are extracted and
