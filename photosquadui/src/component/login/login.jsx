@@ -35,6 +35,8 @@ export class Login extends React.Component{
             const data = await res.json()
             console.log( data["photosquadtoken"]) 
             console.log( data["username"]) 
+            // window.localStorage.setItem('username', data["username"]);
+            window.localStorage.setItem('photosquadtoken', data["photosquadtoken"]);
             if (this.state.loggedIn === true){
                 this.props.history.push("/dashboard");
             }

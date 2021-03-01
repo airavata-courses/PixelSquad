@@ -1,11 +1,14 @@
 package com.iu.photosquad.mainuploadmgmt.mainuploadmgmt.controller;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
+import java.io.ObjectOutputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +25,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.iu.photosquad.mainuploadmgmt.mainuploadmgmt.Dto.AlbumModel;
+import com.iu.photosquad.mainuploadmgmt.mainuploadmgmt.Dto.KafkaAlbumModel;
 import com.iu.photosquad.mainuploadmgmt.mainuploadmgmt.Dto.ShareAlbumModel;
+import com.iu.photosquad.mainuploadmgmt.mainuploadmgmt.Dto.TotalAlbumsPerUser;
 import com.iu.photosquad.mainuploadmgmt.mainuploadmgmt.Dto.UserResponse;
 import com.iu.photosquad.mainuploadmgmt.mainuploadmgmt.Entity.Album;
 import com.iu.photosquad.mainuploadmgmt.mainuploadmgmt.Entity.Photo;
@@ -53,7 +61,9 @@ public class AlbumController {
 	private UserRepo userrepo;
 	
 	@Autowired
-	private KafkaTemplate<String,Object> template;
+	private KafkaTemplate<String,KafkaAlbumModel> template;
+	
+	private String topic = "album";
 	
 	@PostMapping(path="/create")
 	public ResponseEntity<?> create(@RequestBody AlbumModel album) {
@@ -75,12 +85,14 @@ public class AlbumController {
 		    ab.setAlbumname(album.getName());
 		    ab.setSharedpriveledges(album.getSharedpriveledges());
 		    ab.setPhotos(new ArrayList<>());
+		    ab.setOwner(album.getOwner());
 		    User u = findOrAddUser(album.getOwner());
 		    System.out.println("method returns" + u);
 		    Set<User> st = new HashSet<User>(); 
 		    st.add(u);
 		    ab.setUsers(st);
 		    albumrepo.save(ab);
+		    createresponse.put("album", "created");
 			}
 		}
 		catch(Exception e){
@@ -95,8 +107,10 @@ public class AlbumController {
 		      @RequestParam("albumname") String albumname,@RequestParam("sharedusers") List<String> users,
 		      @RequestParam("photoname") String photoname) throws Exception {
 
+		System.out.println(files.toString());
 		
 		Set<Photo> photoset = new HashSet<>();
+		List<Photo> kafkaphotos = new ArrayList<>();
 		
 		for(MultipartFile mf : files) {
 			Photo pic = new Photo();
@@ -109,6 +123,7 @@ public class AlbumController {
 			pic.setUpdatedAt(LocalDate.now());
 			pic.setData(mf.getBytes());
 			photoset.add(pic);
+			kafkaphotos.add(pic);
 		}
 
 		List<String> usernames = new ArrayList<>();
@@ -163,7 +178,18 @@ public class AlbumController {
 		
 		albumrepo.save(parentalbum);
 		Album albs = albumrepo.findByAlbumname(parentalbum.getAlbumname());
-		template.send("album", albs.toString());
+//		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+//        ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
+//        objectStream.writeObject(albs);
+//        objectStream.flush();
+//        objectStream.close();
+//        byteStream.toByteArray();
+//		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+		
+		KafkaAlbumModel kam = new KafkaAlbumModel();
+		kam.setPhotos(kafkaphotos);
+		kam.setAlbumname(albumname);
+//		template.send(topic,"album",kam);
 		System.out.println("album sent to google");
 		return ResponseEntity.ok("200");
 	}
@@ -201,19 +227,40 @@ public class AlbumController {
 	
 	
 	@GetMapping(path="/allalbums")
-	public ResponseEntity<?> allalbums() {
-		HashMap<String,List<Album>> singlealbumresponse = new HashMap<>();
+	public ResponseEntity<?> allalbums(@RequestParam String username) {
+		HashMap<String,List<TotalAlbumsPerUser>> allalbumresponse = new HashMap<>();
 		try {
-			List<Album> u = albumrepo.findAll();
-			if(u != null || (u instanceof Album)) {
-				
-				singlealbumresponse.put("albums", u);
+		
+			List<TotalAlbumsPerUser> u = new ArrayList();
+//			System.out.println(u.size());
+			List<Album> u1 = albumrepo.findByOwner(username);
+			for(Album al : u1) {
+				TotalAlbumsPerUser tau = new TotalAlbumsPerUser();
+				tau.setAlbumname(al.getAlbumname());
+				tau.setCreated_at(al.getCreatedAt());
+				tau.setOwner(al.getOwner());
+				List<String> userss = new ArrayList<>();
+				for(User u2 : al.getUsers()) {
+					userss.add(u2.getUsername());
+				}
+				tau.setSharedwith(userss);
+				u.add(tau);
 			}
+//			System.out.println(u);
+//			if(u1.size() != 0) {
+//				List<Album> albs = albumrepo.findAll();
+//				for(Album a:albs) {
+//					if(a.ge)
+//				}
+//				System.out.println(albumrepo.findById(u.getId()));
+				allalbumresponse.put("albums", u);
+				return ResponseEntity.ok(allalbumresponse);
+//			}
 		}
 		catch(Exception e){
 			e.getStackTrace();
 		}
-		return ResponseEntity.ok(singlealbumresponse);
+		return ResponseEntity.ok(allalbumresponse);
 		
 	}
 //	
@@ -233,25 +280,7 @@ public class AlbumController {
 		return ResponseEntity.ok(usersresponse);
 		
 	}
-//	
-//	@GetMapping(path="/allphotos")
-//	public ResponseEntity<?> listphotos(@RequestParam String albumname) {
-//		HashMap<String,Photo>> photoresponse = new HashMap<>();
-//		try {
-//			List<Photo> u = photorepo.findAll();
-//			for(Photo i : u) {
-//				if(i.getAlbum().equals(albumname)) {
-//					photoresponse.put("photos", i);
-//				}
-//			}
-//		}
-//		catch(Exception e){
-//			e.getStackTrace();
-//		}
-//		return ResponseEntity.ok(photoresponse);
-//		
-//	}
-//	
+
 	public User findOrAddUser(String username) throws Exception {
 		User newuser = new User();
 		if(userrepo.findByUsername(username) != null) {
@@ -287,8 +316,8 @@ public class AlbumController {
 			if(albumrepo.findByAlbumname(album.getAlbumname()) != null){
 				List<String> usernames = album.getUsernames();
 				
-				List<User> lt = new ArrayList<>();
-				for(String u : album.getUsernames()) {
+				Set<User> lt = new HashSet<>();
+				for(String u : usernames) {
 					lt.add(findOrAddUser(u));
 				}
 				
@@ -302,7 +331,7 @@ public class AlbumController {
 	}
 	
 	@GetMapping(path="/download")
-	public ResponseEntity<?> share(@RequestParam String albumname) throws FileNotFoundException{
+	public ResponseEntity<?> download(@RequestParam String albumname) throws FileNotFoundException{
 
 
 		Album ab = albumrepo.findByAlbumname(albumname);

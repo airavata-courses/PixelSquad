@@ -57,6 +57,7 @@ public class Album {
     @ElementCollection(targetClass=String.class)
     private List<String> tags;
     private String albumname;
+    private String owner;
     private String sharedpriveledges = "private";
 
     @OneToMany(targetEntity = Photo.class, cascade = CascadeType.ALL)

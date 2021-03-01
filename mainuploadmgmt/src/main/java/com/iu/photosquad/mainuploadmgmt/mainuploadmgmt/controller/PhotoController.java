@@ -72,6 +72,7 @@ public class PhotoController {
 			pic.setData(mf.getBytes());
 //			photoset.add(pic);
 			photorepo.save(pic);
+			
 		}
 
 		return ResponseEntity.ok("200");
@@ -86,5 +87,5 @@ public class PhotoController {
 	             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + "hello.png" + "\"")
 	             .body(new ByteArrayResource(ab.getData()));
 
-		}
+	}
 }
