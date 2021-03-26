@@ -52,7 +52,7 @@ public class RestServiceLocator extends RestTemplate {
     
 	public List<UserResponse> getUsersFromUserMgmtDB(List<String> list) throws Exception
     {
-        final String uri = "http://localhost:8080/user/find";
+        final String uri = "http://user-mgmt:8090/user/find";
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("list" + list);
         UserInfo um = new UserInfo();
